@@ -1,8 +1,8 @@
 """FastAPI web server for the PO Validator.
 
-Provides a simple UI with two uploads:
-  - Email purchase order confirmation (.txt): fields are extracted via regex and
-    written to an intermediate JSON file in output/.
+Provides a simple UI with two inputs:
+  - Email purchase order confirmation: pasted as text; fields are extracted via
+    regex and written to an intermediate JSON file in output/.
   - ERP JSON (.json): validated as JSON and stored in uploads/.
 
 When both an email and an ERP file have been uploaded, the extracted email
@@ -15,7 +15,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from fastapi import FastAPI, File, Request, UploadFile
+from fastapi import FastAPI, File, Form, Request, UploadFile
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
@@ -76,26 +76,23 @@ async def index(request: Request) -> HTMLResponse:
 
 
 @app.post("/upload-email", response_class=HTMLResponse)
-async def upload_email(request: Request, file: UploadFile = File(...)) -> HTMLResponse:
-    filename = file.filename or "email.txt"
-    if not filename.lower().endswith(".txt"):
+async def upload_email(request: Request, email_text: str = Form(...)) -> HTMLResponse:
+    text = email_text.strip()
+    if not text:
         return templates.TemplateResponse(
             request,
             "index.html",
-            _build_context({"type": "error", "text": "Please upload a .txt email file."}),
+            _build_context({"type": "error", "text": "Please paste the email text."}),
         )
 
-    raw = await file.read()
-    text = raw.decode("utf-8", errors="replace")
+    source_name = "pasted-email"
+    record = build_intermediate_record(source_name, text)
 
-    record = build_intermediate_record(filename, text)
-
-    stem = Path(filename).stem
-    out_path = OUTPUT_DIR / f"{stem}.extracted.json"
+    out_path = OUTPUT_DIR / "pasted-email.extracted.json"
     out_path.write_text(json.dumps(record, indent=2), encoding="utf-8")
 
     STATE["email"] = {
-        "source_file": filename,
+        "source_file": source_name,
         "fields": {k: record[k] for k in COMPARE_FIELDS},
         "record": record,
         "output_path": out_path.name,

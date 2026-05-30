@@ -2,14 +2,13 @@
 
 A local FastAPI web app for processing purchase order (PO) confirmations.
 
-It provides a simple web UI with two uploads:
+It provides a simple web UI with two inputs:
 
-1. **Email confirmation (`.txt`)** — the PO confirmation email. The server
-   regex-extracts the **PO number**, **date**, and **amount**, then writes an
-   intermediate JSON file to `output/`.
+1. **Email confirmation** — paste the PO confirmation email text directly into
+   the textarea. The server regex-extracts the **PO number**, **date**, and
+   **amount**, then writes an intermediate JSON file to `output/`.
 2. **ERP JSON (`.json`)** — the file created by the ERP system after the PO was
-   manually entered. For now it is validated as JSON and stored in `uploads/`
-   (no comparison/validation against the email yet).
+   manually entered, uploaded and validated as JSON, then stored in `uploads/`.
 
 ## Extracted fields
 
@@ -50,6 +49,15 @@ uvicorn main:app --reload
 
 Then open http://127.0.0.1:8000 in your browser.
 
+## Tests
+
+Regression tests run the saved emails under `tests/` through the extractor and
+compare them against their paired ERP JSON fixtures:
+
+```bash
+pytest
+```
+
 ## Project structure
 
 ```
@@ -58,7 +66,7 @@ extractor.py       Regex field extraction + normalization
 templates/         HTML UI (Jinja2)
 output/            Generated intermediate JSON files (gitignored)
 uploads/           Stored ERP JSON files (gitignored)
-tests/             Sample emails
+tests/             Sample emails/ERP fixtures + regression tests
 ```
 
 ## Notes

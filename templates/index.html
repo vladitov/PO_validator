@@ -44,6 +44,14 @@
       background: #0b1220; color: var(--text); border: 1px solid var(--border);
       border-radius: 8px; padding: 8px 12px; cursor: pointer; margin-right: 12px;
     }
+    textarea {
+      width: 100%; margin-bottom: 16px; padding: 10px 12px; resize: vertical;
+      background: #0b1220; color: var(--text); border: 1px solid var(--border);
+      border-radius: 8px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.82rem; line-height: 1.45;
+    }
+    textarea:focus { outline: none; border-color: var(--accent); }
+    textarea::placeholder { color: var(--muted); }
     button {
       width: 100%; border: none; border-radius: 9px; padding: 11px 14px;
       font-size: 0.92rem; font-weight: 600; cursor: pointer; color: #06121f;
@@ -119,15 +127,15 @@
     <div class="cards">
       <div class="card">
         <h2>1. Email confirmation</h2>
-        <p class="hint">Text file (.txt) of the PO confirmation email.</p>
-        <form action="/upload-email" method="post" enctype="multipart/form-data">
-          <input type="file" name="file" accept=".txt" required />
-          <button type="submit" class="btn-email">Upload email</button>
+        <p class="hint">Paste the PO confirmation email text.</p>
+        <form action="/upload-email" method="post">
+          <textarea name="email_text" rows="8" placeholder="Paste the PO confirmation email here..." required></textarea>
+          <button type="submit" class="btn-email">Extract from pasted email</button>
         </form>
         {% if email %}
           <div class="uploaded">Loaded: {{ email.source_file }}</div>
         {% else %}
-          <div class="notuploaded">No email uploaded yet.</div>
+          <div class="notuploaded">No email pasted yet.</div>
         {% endif %}
       </div>
 
