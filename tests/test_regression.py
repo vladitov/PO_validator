@@ -31,12 +31,13 @@ def _case_dirs() -> list[Path]:
 @pytest.mark.parametrize("case_dir", _case_dirs(), ids=lambda p: p.name)
 def test_case(case_dir: Path):
     email_path = next(case_dir.glob("*.txt"))
+    output_path = next(case_dir.glob("po_validator_output*.json"))
     erp_path = next(
-        p for p in case_dir.glob("*.json") if p.name != "po_validator_output.json"
+        p
+        for p in case_dir.glob("*.json")
+        if not p.name.startswith("po_validator_output")
     )
-    expected = json.loads(
-        (case_dir / "po_validator_output.json").read_text(encoding="utf-8")
-    )["result"]
+    expected = json.loads(output_path.read_text(encoding="utf-8"))["result"]
 
     email_fields = extract_fields(email_path.read_text(encoding="utf-8"))
     erp_fields = extract_erp_fields(json.loads(erp_path.read_text(encoding="utf-8")))
