@@ -1,8 +1,10 @@
 """Regression tests over the saved email/ERP fixtures.
 
-The .txt emails under tests/ are the regression source of truth: each is read
-exactly as the web UI now feeds pasted text into the extractor, then compared
-against its paired ERP JSON fixture.
+Each tests/test_XX folder is a self-contained case:
+  - an email .txt (the regression source of truth, read exactly as the web UI
+    now feeds pasted text into the extractor),
+  - an ERP .json,
+  - po_validator_output.json with the expected {"result": "correct"|"incorrect"}.
 """
 
 from __future__ import annotations
@@ -11,41 +13,33 @@ import json
 import sys
 from pathlib import Path
 
+import pytest
+
 TESTS_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = TESTS_DIR.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from extractor import compare_fields, extract_erp_fields, extract_fields  # noqa: E402
 
-
-def _load_pair(folder: str, email_name: str, erp_name: str):
-    email_text = (TESTS_DIR / folder / email_name).read_text(encoding="utf-8")
-    erp = json.loads((TESTS_DIR / folder / erp_name).read_text(encoding="utf-8"))
-    return extract_fields(email_text), extract_erp_fields(erp)
+EXPECTED_STATUS = {"correct": "match", "incorrect": "mismatch"}
 
 
-def test_correct_pair_matches():
-    email_fields, erp_fields = _load_pair("correct", "email_01.txt", "erp_01.json")
-
-    assert email_fields == {
-        "po_number": "MLA-2026-88X",
-        "date": "2026-01-15",
-        "amount": 24500.0,
-        "currency": "EUR",
-    }
-
-    result = compare_fields(email_fields, erp_fields)
-    assert result["status"] == "match"
-    assert all(result["checks"].values())
+def _case_dirs() -> list[Path]:
+    return sorted(p for p in TESTS_DIR.glob("test_*") if p.is_dir())
 
 
-def test_incorrect_pair_mismatches():
-    email_fields, erp_fields = _load_pair("incorrect", "email_02.txt", "erp_02.json")
+@pytest.mark.parametrize("case_dir", _case_dirs(), ids=lambda p: p.name)
+def test_case(case_dir: Path):
+    email_path = next(case_dir.glob("*.txt"))
+    erp_path = next(
+        p for p in case_dir.glob("*.json") if p.name != "po_validator_output.json"
+    )
+    expected = json.loads(
+        (case_dir / "po_validator_output.json").read_text(encoding="utf-8")
+    )["result"]
+
+    email_fields = extract_fields(email_path.read_text(encoding="utf-8"))
+    erp_fields = extract_erp_fields(json.loads(erp_path.read_text(encoding="utf-8")))
 
     result = compare_fields(email_fields, erp_fields)
-    assert result["status"] == "mismatch"
-    assert result["checks"]["date"] is False
-    assert result["checks"]["amount"] is False
-    # po_number and currency still agree between email and ERP.
-    assert result["checks"]["po_number"] is True
-    assert result["checks"]["currency"] is True
+    assert result["status"] == EXPECTED_STATUS[expected]

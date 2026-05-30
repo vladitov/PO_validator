@@ -12,7 +12,7 @@ It provides a simple web UI with two inputs:
 
 ## Extracted fields
 
-Tuned to the sample email in `tests/correct/email_01.txt`:
+Tuned to the sample email in `tests/test_01/email_01.txt`:
 
 | Field       | Source in email                              | Example         |
 | ----------- | -------------------------------------------- | --------------- |
@@ -66,7 +66,7 @@ extractor.py       Regex field extraction + normalization
 templates/         HTML UI (Jinja2)
 output/            Generated intermediate JSON files (gitignored)
 uploads/           Stored ERP JSON files (gitignored)
-tests/             Sample emails/ERP fixtures + regression tests
+tests/             Per-case fixtures (test_XX/) + regression tests
 ```
 
 ## Notes
