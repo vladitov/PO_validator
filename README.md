@@ -24,7 +24,7 @@ The intermediate JSON looks like:
 
 ```json
 {
-  "source_file": "email_01.txt",
+  "source_file": "pasted-email",
   "po_number": "MLA-2026-88X",
   "date": "2026-01-15",
   "amount": 24500.0,
@@ -32,6 +32,22 @@ The intermediate JSON looks like:
   "extracted_at": "2026-05-30T10:24:00+00:00"
 }
 ```
+
+## Validation
+
+Once both an email and an ERP JSON are provided, the app compares the
+extracted fields (`po_number`, `date`, `amount`, `currency`) and shows a
+green (match) / red (mismatch) / gray (not enough data) indicator. The PO
+reference is compared on its core identifier, so the email's `MLA-` prefix and
+the ERP's `PO-` prefix for the same order are treated as equal.
+
+The ERP JSON is accepted in three shapes:
+
+- **nested** — fields under a `manual_entries` object with `fulfillment_date`
+  and an explicit `currency`;
+- **flat** — fields at the top level with an `expected_fulfillment_date`;
+- **list-wrapped** — a single-element array containing either of the above
+  (the ERP exports one record per file as a JSON array).
 
 ## Setup
 
@@ -73,5 +89,5 @@ tests/             Per-case fixtures (test_XX/) + regression tests
 
 - Extraction is regex-based and tuned to the sample email format; different
   wording may require updating the patterns in `extractor.py`.
-- Validation of the ERP JSON against the extracted email data is planned for a
-  future step.
+- Only EUR amounts are handled today; currency defaults to EUR when an amount
+  is present but no currency is given.

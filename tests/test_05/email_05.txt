@@ -1,0 +1,21 @@
+From: noreply@cloud-infra-solutions.com
+Date: January 5, 2026, 08:00 AM
+To: procurement@yourscaleup.com
+Subject: ORDER CONFIRMATION / REF: PO-2026-77A
+
+=======================================================
+AUTOMATED ORDER CONFIRMATION - CLOUD INFRASTRUCTURE
+=======================================================
+Order Reference : PO-2026-77A
+Client ID       : SC-99212
+Target Go-Live  : 2026-03-01
+-------------------------------------------------------
+Line Items:
+1. AWS Dedicated Host Tier-3 Proxy  --  Qty: 1  -- €4,200.00
+2. Enterprise Support Add-on        --  Qty: 1  -- €1,150.00
+-------------------------------------------------------
+Subtotal (Net): €5,350.00
+VAT (21%)     : €1,123.50
+Grand Total   : €6,473.50
+=======================================================
+Thank you for your business. Cloud Infra Solutions.

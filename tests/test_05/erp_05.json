@@ -1,0 +1,14 @@
+[
+    {
+      "input_id": "IN-2026-004",
+      "inputter_email": "procurement.user@yourscaleup.com",
+      "timestamp": "2026-01-05T08:30:00Z",
+      "manual_entries": {
+        "po_number": "PO-2026-77A",
+        "vendor_name": "Cloud Infra Solutions",
+        "fulfillment_date": "2026-03-01",
+        "net_amount": 6473.50,
+        "currency": "EUR"
+      }
+    }
+  ]

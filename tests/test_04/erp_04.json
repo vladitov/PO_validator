@@ -1,0 +1,14 @@
+[
+  {
+    "input_id": "IN-2026-003",
+    "inputter_email": "procurement.user@yourscaleup.com",
+    "timestamp": "2026-01-04T15:00:00Z",
+    "manual_entries": {
+      "po_number": "PO-2026-99Z",
+      "vendor_name": "Euro Logistics Hub",
+      "fulfillment_date": "2026-01-02",
+      "net_amount": 12700.00,
+      "currency": "EUR"
+    }
+  }
+]

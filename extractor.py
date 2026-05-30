@@ -142,18 +142,23 @@ def normalize_po(value) -> str | None:
     return core or None
 
 
-def extract_erp_fields(erp: dict) -> dict:
+def extract_erp_fields(erp) -> dict:
     """Map the ERP JSON onto the comparable field set.
 
-    Supports two shapes:
+    Supports these shapes:
       - nested: fields live under a ``manual_entries`` object with a
         ``fulfillment_date`` and explicit ``currency``;
       - flat: fields sit at the top level, the date key is
-        ``expected_fulfillment_date``, and ``currency`` may be absent.
+        ``expected_fulfillment_date``, and ``currency`` may be absent;
+      - list-wrapped: a single-element array containing either of the above
+        (the ERP exports one record per file as a JSON array).
 
     When currency is not provided but an amount is, it defaults to EUR (the
     only currency this tool handles today).
     """
+    if isinstance(erp, list):
+        erp = next((item for item in erp if isinstance(item, dict)), None)
+
     if not isinstance(erp, dict):
         entries: dict = {}
     else:
