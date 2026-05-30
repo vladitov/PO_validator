@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PO Validator</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --accent: #38bdf8;
+      --accent-2: #34d399;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --border: #334155;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(160deg, #0f172a, #111827);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 48px 16px;
+    }
+    .container { max-width: 760px; margin: 0 auto; }
+    h1 { font-size: 1.9rem; margin: 0 0 4px; }
+    .subtitle { color: var(--muted); margin: 0 0 32px; }
+    .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 640px) { .cards { grid-template-columns: 1fr; } }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px;
+    }
+    .card h2 { font-size: 1.05rem; margin: 0 0 6px; }
+    .card p { color: var(--muted); font-size: 0.85rem; margin: 0 0 18px; }
+    input[type="file"] {
+      width: 100%;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+    input[type="file"]::file-selector-button {
+      background: #0b1220;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      margin-right: 12px;
+    }
+    button {
+      width: 100%;
+      border: none;
+      border-radius: 9px;
+      padding: 11px 14px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: #06121f;
+    }
+    .btn-email { background: var(--accent); }
+    .btn-erp { background: var(--accent-2); }
+    button:hover { filter: brightness(1.08); }
+    .result {
+      margin-top: 30px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px;
+    }
+    .result.error { border-color: #f87171; }
+    .result h2 { margin: 0 0 12px; font-size: 1.05rem; }
+    .msg { color: var(--accent-2); margin: 0 0 16px; font-size: 0.9rem; }
+    .result.error .msg { color: #f87171; }
+    pre {
+      background: #0b1220;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      overflow-x: auto;
+      font-size: 0.85rem;
+      margin: 0;
+    }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+    td { padding: 8px 10px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+    td.key { color: var(--muted); width: 38%; }
+    code { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>PO Validator</h1>
+    <p class="subtitle">Upload a purchase order confirmation email and the ERP-generated JSON.</p>
+
+    <div class="cards">
+      <div class="card">
+        <h2>1. Email confirmation</h2>
+        <p>Text file (.txt) of the PO confirmation email. Fields are extracted automatically.</p>
+        <form action="/upload-email" method="post" enctype="multipart/form-data">
+          <input type="file" name="file" accept=".txt" required />
+          <button type="submit" class="btn-email">Upload email</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>2. ERP JSON</h2>
+        <p>JSON file (.json) created by the ERP after manual PO entry. Stored for later validation.</p>
+        <form action="/upload-erp" method="post" enctype="multipart/form-data">
+          <input type="file" name="file" accept=".json" required />
+          <button type="submit" class="btn-erp">Upload ERP JSON</button>
+        </form>
+      </div>
+    </div>
+
+    {% if result %}
+    <div class="result {{ 'error' if result.type == 'error' else '' }}">
+      {% if result.type == 'error' %}
+        <h2>Error</h2>
+        <p class="msg">{{ result.message }}</p>
+      {% elif result.type == 'email' %}
+        <h2>Extracted fields</h2>
+        <p class="msg">{{ result.message }}</p>
+        <table>
+          <tr><td class="key">PO number</td><td><code>{{ result.record.po_number }}</code></td></tr>
+          <tr><td class="key">Date</td><td><code>{{ result.record.date }}</code></td></tr>
+          <tr><td class="key">Amount</td><td><code>{{ result.record.amount }} {{ result.record.currency }}</code></td></tr>
+          <tr><td class="key">Source file</td><td>{{ result.record.source_file }}</td></tr>
+        </table>
+        <pre>{{ result.record | tojson(indent=2) }}</pre>
+      {% elif result.type == 'erp' %}
+        <h2>ERP JSON stored</h2>
+        <p class="msg">{{ result.message }}</p>
+        <pre>{{ result.record | tojson(indent=2) }}</pre>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</body>
+</html>
