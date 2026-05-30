@@ -12,7 +12,7 @@ It provides a simple web UI with two inputs:
 
 ## Extracted fields
 
-Tuned to the sample email in `tests/test_01/email_01.txt`:
+Tuned to the sample email in `tests/test_00/email_00.txt`:
 
 | Field       | Source in email                              | Example         |
 | ----------- | -------------------------------------------- | --------------- |

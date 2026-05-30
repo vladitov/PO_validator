@@ -1,6 +1,6 @@
 """Regex-based extraction of PO confirmation fields from email text.
 
-Tuned to the sample email format in tests/test_01/email_01.txt. The extractor
+Tuned to the sample email format in tests/test_00/email_00.txt. The extractor
 pulls three fields:
   - po_number: the Master Lease Agreement reference (e.g. MLA-2026-88X)
   - date:      the activation/deployment date, normalized to ISO (YYYY-MM-DD)
