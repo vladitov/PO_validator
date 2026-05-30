@@ -81,3 +81,73 @@ def build_intermediate_record(source_file: str, text: str) -> dict:
         "currency": fields["currency"],
         "extracted_at": datetime.now(timezone.utc).isoformat(),
     }
+
+
+_PO_PREFIX_PATTERN = re.compile(r"^[A-Z]+-")
+
+
+def normalize_po(value) -> str | None:
+    """Normalize a PO/MLA reference for comparison.
+
+    Email uses an 'MLA-' prefix while the ERP uses a 'PO-' prefix for the same
+    order, so we strip the leading alphabetic prefix and compare the core
+    identifier (e.g. both 'MLA-2026-88X' and 'PO-2026-88X' -> '2026-88X').
+    """
+    if value is None:
+        return None
+    core = _PO_PREFIX_PATTERN.sub("", str(value).strip().upper())
+    return core or None
+
+
+def extract_erp_fields(erp: dict) -> dict:
+    """Map the ERP JSON's manual_entries onto the comparable field set."""
+    entries = erp.get("manual_entries", {}) if isinstance(erp, dict) else {}
+
+    raw_amount = entries.get("net_amount")
+    try:
+        amount = float(raw_amount) if raw_amount is not None else None
+    except (TypeError, ValueError):
+        amount = None
+
+    currency = entries.get("currency")
+    return {
+        "po_number": entries.get("po_number"),
+        "date": entries.get("fulfillment_date"),
+        "amount": amount,
+        "currency": currency.upper() if isinstance(currency, str) else currency,
+    }
+
+
+def _amounts_match(a, b) -> bool:
+    if a is None or b is None:
+        return False
+    try:
+        return abs(float(a) - float(b)) < 0.005
+    except (TypeError, ValueError):
+        return False
+
+
+def compare_fields(email_fields: dict, erp_fields: dict) -> dict:
+    """Compare the email-extracted fields against the ERP fields.
+
+    Returns per-field match booleans and an overall status of 'match' or
+    'mismatch'.
+    """
+    email_po = normalize_po(email_fields.get("po_number"))
+    erp_po = normalize_po(erp_fields.get("po_number"))
+
+    email_cur = email_fields.get("currency")
+    erp_cur = erp_fields.get("currency")
+
+    checks = {
+        "po_number": email_po is not None and email_po == erp_po,
+        "date": email_fields.get("date") is not None
+        and email_fields.get("date") == erp_fields.get("date"),
+        "amount": _amounts_match(email_fields.get("amount"), erp_fields.get("amount")),
+        "currency": isinstance(email_cur, str)
+        and isinstance(erp_cur, str)
+        and email_cur.upper() == erp_cur.upper(),
+    }
+
+    overall = all(checks.values())
+    return {"checks": checks, "status": "match" if overall else "mismatch"}
