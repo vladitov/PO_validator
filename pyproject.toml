@@ -1,0 +1,23 @@
+[project]
+name = "po-validator"
+version = "0.1.0"
+description = "FastAPI web app for validating purchase order confirmations against ERP records, with LLM-first field extraction."
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "fastapi==0.115.6",
+    "uvicorn[standard]==0.34.0",
+    "python-multipart==0.0.20",
+    "jinja2==3.1.5",
+    "anthropic==0.105.2",
+    "python-dotenv==1.2.1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest==8.3.4",
+]
+
+[tool.uv]
+# Flat-module application, not an installable package: only sync dependencies.
+package = false

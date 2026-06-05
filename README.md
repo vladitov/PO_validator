@@ -86,16 +86,21 @@ The ERP JSON is accepted in three shapes:
 
 ## Setup
 
+This project uses [uv](https://docs.astral.sh/uv/). Create the virtual
+environment and install the locked dependencies (Python 3.14 is pinned via
+`.python-version`):
+
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+uv sync
 ```
+
+This reads `pyproject.toml` / `uv.lock` and provisions `.venv`. Use
+`uv sync --no-dev` to skip the dev dependencies (e.g. `pytest`).
 
 ## Run
 
 ```bash
-uvicorn main:app --reload
+uv run uvicorn main:app --reload
 ```
 
 Then open http://127.0.0.1:8000 in your browser.
@@ -106,7 +111,7 @@ Regression tests run the saved emails under `tests/` through the **LLM**
 extractor and compare them against their paired ERP JSON fixtures:
 
 ```bash
-pytest
+uv run pytest
 ```
 
 These tests require `ANTHROPIC_API_KEY` to be set (they make real API calls).
