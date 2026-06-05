@@ -2,7 +2,7 @@
 
 A FastAPI web app for processing purchase order (PO) confirmations.
 
-**Live demo:** https://po-validator-376659467709.europe-west1.run.app/
+**Live demo:** https://po-validator-151848188685.europe-west1.run.app
 
 It provides a simple web UI with two inputs:
 
