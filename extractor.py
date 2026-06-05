@@ -1,7 +1,9 @@
-"""Regex-based extraction of PO confirmation fields from email text.
+"""Extraction of PO confirmation fields from email text.
 
-Handles the assorted sample email formats under tests/test_*/ . The extractor
-pulls these fields:
+Extraction is LLM-first (via ``llm_extractor.llm_extract_fields``) with the
+regex extractor in this module as an automatic backup. The regex path handles
+the assorted sample email formats under tests/test_*/ . Both paths pull the
+same fields:
   - po_number: an order reference with an uppercase prefix (e.g. MLA-2026-88X,
     PO-2026-99Z)
   - date:      the fulfillment/activation date, normalized to ISO (YYYY-MM-DD),
@@ -14,6 +16,8 @@ from __future__ import annotations
 
 import re
 from datetime import datetime, timezone
+
+from llm_extractor import llm_extract_fields
 
 # PO/order reference: any uppercase alphabetic prefix (MLA-, PO-, ...) followed
 # by a year and an alphanumeric tail.
@@ -90,8 +94,11 @@ def _normalize_amount(raw_amount: str) -> float | None:
         return None
 
 
-def extract_fields(text: str) -> dict:
-    """Extract po_number, date, and amount from raw email text.
+_REQUIRED_FIELDS = ("po_number", "date", "amount", "currency")
+
+
+def regex_extract_fields(text: str) -> dict:
+    """Extract po_number, date, and amount from raw email text using regex.
 
     Returns a dict with normalized values. Fields that cannot be found are set
     to None so the caller can detect partial extractions.
@@ -113,15 +120,46 @@ def extract_fields(text: str) -> dict:
     }
 
 
+def _is_complete(fields: dict | None) -> bool:
+    return isinstance(fields, dict) and all(
+        fields.get(key) is not None for key in _REQUIRED_FIELDS
+    )
+
+
+def extract_fields_with_method(text: str) -> tuple[dict, str]:
+    """Extract fields, preferring the LLM and falling back to regex.
+
+    Returns a ``(fields, method)`` tuple where ``method`` is "llm" when the LLM
+    produced a complete result, otherwise "regex". The LLM is skipped entirely
+    when no API key is configured (``llm_extract_fields`` returns None).
+    """
+    llm_fields = llm_extract_fields(text)
+    if _is_complete(llm_fields):
+        return {key: llm_fields[key] for key in _REQUIRED_FIELDS}, "llm"
+
+    return regex_extract_fields(text), "regex"
+
+
+def extract_fields(text: str) -> dict:
+    """Extract po_number, date, amount, and currency from raw email text.
+
+    LLM-first with an automatic regex fallback. See
+    ``extract_fields_with_method`` for the method used.
+    """
+    fields, _method = extract_fields_with_method(text)
+    return fields
+
+
 def build_intermediate_record(source_file: str, text: str) -> dict:
     """Build the full intermediate JSON record for an email file."""
-    fields = extract_fields(text)
+    fields, method = extract_fields_with_method(text)
     return {
         "source_file": source_file,
         "po_number": fields["po_number"],
         "date": fields["date"],
         "amount": fields["amount"],
         "currency": fields["currency"],
+        "extraction_method": method,
         "extracted_at": datetime.now(timezone.utc).isoformat(),
     }
 

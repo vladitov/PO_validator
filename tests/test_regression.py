@@ -5,11 +5,16 @@ Each tests/test_XX folder is a self-contained case:
     now feeds pasted text into the extractor),
   - an ERP .json,
   - po_validator_output.json with the expected {"result": "correct"|"incorrect"}.
+
+These tests exercise the LLM extraction path (``llm_extract_fields``). They are
+skipped automatically when ``ANTHROPIC_API_KEY`` is not configured, so a keyless
+environment still passes without making API calls.
 """
 
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -19,15 +24,22 @@ TESTS_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = TESTS_DIR.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from extractor import compare_fields, extract_erp_fields, extract_fields  # noqa: E402
+from extractor import compare_fields, extract_erp_fields  # noqa: E402
+from llm_extractor import llm_extract_fields  # noqa: E402
 
 EXPECTED_STATUS = {"correct": "match", "incorrect": "mismatch"}
+
+requires_api_key = pytest.mark.skipif(
+    not os.environ.get("ANTHROPIC_API_KEY"),
+    reason="ANTHROPIC_API_KEY not set; skipping LLM extraction tests.",
+)
 
 
 def _case_dirs() -> list[Path]:
     return sorted(p for p in TESTS_DIR.glob("test_*") if p.is_dir())
 
 
+@requires_api_key
 @pytest.mark.parametrize("case_dir", _case_dirs(), ids=lambda p: p.name)
 def test_case(case_dir: Path):
     email_path = next(case_dir.glob("*.txt"))
@@ -39,7 +51,8 @@ def test_case(case_dir: Path):
     )
     expected = json.loads(output_path.read_text(encoding="utf-8"))["result"]
 
-    email_fields = extract_fields(email_path.read_text(encoding="utf-8"))
+    email_fields = llm_extract_fields(email_path.read_text(encoding="utf-8"))
+    assert email_fields is not None, "LLM extraction returned no result"
     erp_fields = extract_erp_fields(json.loads(erp_path.read_text(encoding="utf-8")))
 
     result = compare_fields(email_fields, erp_fields)

@@ -91,17 +91,25 @@ async def upload_email(request: Request, email_text: str = Form(...)) -> HTMLRes
     out_path = OUTPUT_DIR / "pasted-email.extracted.json"
     out_path.write_text(json.dumps(record, indent=2), encoding="utf-8")
 
+    method = record.get("extraction_method", "regex")
     STATE["email"] = {
         "source_file": source_name,
         "fields": {k: record[k] for k in COMPARE_FIELDS},
         "record": record,
         "output_path": out_path.name,
+        "method": method,
     }
 
+    method_label = "LLM" if method == "llm" else "regex"
     return templates.TemplateResponse(
         request,
         "index.html",
-        _build_context({"type": "ok", "text": f"Email extracted -> {out_path.name}"}),
+        _build_context(
+            {
+                "type": "ok",
+                "text": f"Email extracted via {method_label} -> {out_path.name}",
+            }
+        ),
     )
 
 

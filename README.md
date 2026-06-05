@@ -7,8 +7,9 @@ A FastAPI web app for processing purchase order (PO) confirmations.
 It provides a simple web UI with two inputs:
 
 1. **Email confirmation** — paste the PO confirmation email text directly into
-   the textarea. The server regex-extracts the **PO number**, **date**, and
-   **amount**, then writes an intermediate JSON file to `output/`.
+   the textarea. The server extracts the **PO number**, **date**, and
+   **amount** (LLM-first, regex fallback — see [Extraction](#extraction)), then
+   writes an intermediate JSON file to `output/`.
 2. **ERP JSON (`.json`)** — the file created by the ERP system after the PO was
    manually entered, uploaded and validated as JSON, then stored in `uploads/`.
 
@@ -31,9 +32,41 @@ The intermediate JSON looks like:
   "date": "2026-01-15",
   "amount": 24500.0,
   "currency": "EUR",
+  "extraction_method": "llm",
   "extracted_at": "2026-05-30T10:24:00+00:00"
 }
 ```
+
+`extraction_method` records which path produced the fields (`llm` or `regex`).
+
+## Extraction
+
+Extraction is **LLM-first with an automatic regex fallback**:
+
+1. If `ANTHROPIC_API_KEY` is set, the email is sent to the Anthropic API
+   (`llm_extractor.py`), which returns the structured fields.
+2. If the key is missing, the call fails, or the LLM result is incomplete (any
+   of the four fields is null), the app falls back to the regex extractor in
+   `extractor.py`.
+
+### Configuration
+
+Set these environment variables (a local `.env` file is loaded automatically
+via `python-dotenv`):
+
+| Variable            | Required | Default            | Purpose                         |
+| ------------------- | -------- | ------------------ | ------------------------------- |
+| `ANTHROPIC_API_KEY` | No       | —                  | Enables the LLM path when set.  |
+| `ANTHROPIC_MODEL`   | No       | `claude-opus-4-8`  | Override the model used.        |
+
+Example `.env`:
+
+```bash
+ANTHROPIC_API_KEY=sk-ant-...
+# ANTHROPIC_MODEL=claude-sonnet-4-6
+```
+
+Without a key the app still works end-to-end using regex extraction only.
 
 ## Validation
 
@@ -69,18 +102,22 @@ Then open http://127.0.0.1:8000 in your browser.
 
 ## Tests
 
-Regression tests run the saved emails under `tests/` through the extractor and
-compare them against their paired ERP JSON fixtures:
+Regression tests run the saved emails under `tests/` through the **LLM**
+extractor and compare them against their paired ERP JSON fixtures:
 
 ```bash
 pytest
 ```
 
+These tests require `ANTHROPIC_API_KEY` to be set (they make real API calls).
+When the key is not set, they are skipped automatically.
+
 ## Project structure
 
 ```
 main.py            FastAPI app and routes
-extractor.py       Regex field extraction + normalization
+extractor.py       Extraction orchestrator (LLM-first) + regex fallback + comparison
+llm_extractor.py   Anthropic LLM field extraction
 templates/         HTML UI (Jinja2)
 output/            Generated intermediate JSON files (gitignored)
 uploads/           Stored ERP JSON files (gitignored)
@@ -89,7 +126,8 @@ tests/             Per-case fixtures (test_XX/) + regression tests
 
 ## Notes
 
-- Extraction is regex-based and tuned to the sample email format; different
-  wording may require updating the patterns in `extractor.py`.
+- Extraction is LLM-first; the regex fallback in `extractor.py` is tuned to the
+  sample email formats, so unusual wording handled only by regex may require
+  updating the patterns.
 - Only EUR amounts are handled today; currency defaults to EUR when an amount
   is present but no currency is given.

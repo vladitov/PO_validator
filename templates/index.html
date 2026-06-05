@@ -96,6 +96,12 @@
     .src { color: var(--muted); font-size: 0.8rem; margin-top: 10px; }
     .uploaded { color: var(--accent-2); font-size: 0.82rem; margin-top: 8px; }
     .notuploaded { color: var(--muted); font-size: 0.82rem; margin-top: 8px; }
+    .method-badge {
+      display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px;
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.03em; vertical-align: middle;
+    }
+    .method-llm { background: rgba(56,189,248,.16); color: var(--accent); border: 1px solid rgba(56,189,248,.4); }
+    .method-regex { background: rgba(100,116,139,.18); color: var(--muted); border: 1px solid var(--border); }
   </style>
 </head>
 <body>
@@ -133,7 +139,12 @@
           <button type="submit" class="btn-email">Extract from pasted email</button>
         </form>
         {% if email %}
-          <div class="uploaded">Loaded: {{ email.source_file }}</div>
+          <div class="uploaded">
+            Loaded: {{ email.source_file }}
+            {% if email.method %}
+              <span class="method-badge method-{{ email.method }}">{{ 'LLM' if email.method == 'llm' else 'regex' }}</span>
+            {% endif %}
+          </div>
         {% else %}
           <div class="notuploaded">No email pasted yet.</div>
         {% endif %}
