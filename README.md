@@ -117,6 +117,26 @@ uv run pytest
 These tests require `ANTHROPIC_API_KEY` to be set (they make real API calls).
 When the key is not set, they are skipped automatically.
 
+### Extraction accuracy vs ERP
+
+Fields compared with `compare_fields` (`po_number`, `date`, `amount`,
+`currency`). LLM used `claude-opus-5`. On these fixtures, LLM and regex
+extracted identical values; `incorrect` cases are intended ERP mismatches,
+not extractor disagreements.
+
+| Case    | Fixture   | LLM | Regex |
+| ------- | --------- | --- | ----- |
+| test_00 | correct   | 4/4 | 4/4   |
+| test_01 | incorrect | 2/4 | 2/4   |
+| test_02 | correct   | 4/4 | 4/4   |
+| test_03 | correct   | 4/4 | 4/4   |
+| test_04 | incorrect | 2/4 | 2/4   |
+| test_05 | incorrect | 3/4 | 3/4   |
+
+Across 24 field checks: **19/24** for both. `po_number` and `currency` always
+match; the misses are `date` (test_01, test_04) and `amount` (test_01,
+test_04, test_05).
+
 ## Project structure
 
 ```
