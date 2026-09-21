@@ -57,7 +57,7 @@ via `python-dotenv`):
 | Variable            | Required | Default            | Purpose                         |
 | ------------------- | -------- | ------------------ | ------------------------------- |
 | `ANTHROPIC_API_KEY` | No       | —                  | Enables the LLM path when set.  |
-| `ANTHROPIC_MODEL`   | No       | `claude-opus-4-8`  | Override the model used.        |
+| `ANTHROPIC_MODEL`   | No       | `claude-opus-5`    | Override the model used.        |
 
 Example `.env`:
 

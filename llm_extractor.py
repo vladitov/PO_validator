@@ -29,7 +29,7 @@ except Exception:  # pragma: no cover - dotenv is a convenience only
 logger = logging.getLogger(__name__)
 
 # Default to the latest Opus model; override with ANTHROPIC_MODEL if desired.
-DEFAULT_MODEL = "claude-opus-4-8"
+DEFAULT_MODEL = "claude-opus-5"
 
 _SYSTEM_PROMPT = (
     "You extract structured purchase-order fields from a confirmation email. "
