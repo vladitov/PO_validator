@@ -107,35 +107,39 @@ Then open http://127.0.0.1:8000 in your browser.
 
 ## Tests
 
-Regression tests run the saved emails under `tests/` through the **LLM**
-extractor and compare them against their paired ERP JSON fixtures:
+Each `tests/test_XX/` case has an email, an `expected.json` with the true
+fields from that email, and the paired ERP JSON. Extraction is scored against
+the email ground truth. Validation is scored by whether the app correctly
+flags **match** or **mismatch** (extracted email vs ERP, compared to
+`expected.json` vs ERP).
 
 ```bash
 uv run pytest
 ```
 
-These tests require `ANTHROPIC_API_KEY` to be set (they make real API calls).
-When the key is not set, they are skipped automatically.
+Regex extraction tests always run. LLM tests (`claude-opus-5`) require
+`ANTHROPIC_API_KEY` and are skipped automatically when the key is not set.
 
-### Extraction accuracy vs ERP
+### Extraction and validation
 
-Fields compared with `compare_fields` (`po_number`, `date`, `amount`,
-`currency`). LLM used `claude-opus-5`. On these fixtures, LLM and regex
-extracted identical values; `incorrect` cases are intended ERP mismatches,
-not extractor disagreements.
+LLM extraction (`claude-opus-5`) vs regex fallback, scored against
+`expected.json`. Validation is the LLM-first app path (match/mismatch vs ERP).
 
-| Case    | Fixture   | LLM | Regex |
-| ------- | --------- | --- | ----- |
-| test_00 | correct   | 4/4 | 4/4   |
-| test_01 | incorrect | 2/4 | 2/4   |
-| test_02 | correct   | 4/4 | 4/4   |
-| test_03 | correct   | 4/4 | 4/4   |
-| test_04 | incorrect | 2/4 | 2/4   |
-| test_05 | incorrect | 3/4 | 3/4   |
+`test_06` and `test_07` use lowercase PO syntax, a prose go-live date, and
+`EUR` with no euro sign, so regex returns no fields while the LLM still
+extracts 4/4.
 
-Across 24 field checks: **19/24** for both. `po_number` and `currency` always
-match; the misses are `date` (test_01, test_04) and `amount` (test_01,
-test_04, test_05).
+| Case    | LLM extraction | Regex extraction | Validation verdict |
+| ------- | -------------- | ---------------- | ------------------ |
+| test_00 | 4/4            | 4/4              | match ✓            |
+| test_01 | 4/4            | 4/4              | mismatch ✓         |
+| test_02 | 4/4            | 4/4              | match ✓            |
+| test_03 | 4/4            | 4/4              | match ✓            |
+| test_04 | 4/4            | 4/4              | mismatch ✓         |
+| test_05 | 4/4            | 4/4              | mismatch ✓         |
+| test_06 | 4/4            | 0/4              | match ✓            |
+| test_07 | 4/4            | 0/4              | mismatch ✓         |
+| **Total** | **32/32**    | **24/32**        | **8/8 correct**    |
 
 ## Project structure
 

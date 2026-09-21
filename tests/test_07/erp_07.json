@@ -1,0 +1,14 @@
+[
+  {
+    "input_id": "IN-2026-007",
+    "inputter_email": "procurement.user@yourscaleup.com",
+    "timestamp": "2026-05-08T11:35:00Z",
+    "manual_entries": {
+      "po_number": "PO-2026-63M",
+      "vendor_name": "Helix Lab",
+      "fulfillment_date": "2026-07-02",
+      "net_amount": 9200.00,
+      "currency": "EUR"
+    }
+  }
+]

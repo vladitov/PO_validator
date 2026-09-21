@@ -2,8 +2,9 @@
 
 Extraction is LLM-first (via ``llm_extractor.llm_extract_fields``) with the
 regex extractor in this module as an automatic backup. The regex path handles
-the assorted sample email formats under tests/test_*/ . Both paths pull the
-same fields:
+the hyphenated-PO / ISO-or-€ formats in tests/test_00–test_05. test_06 and
+test_07 are outside those patterns on purpose (LLM-only). Both paths pull
+the same fields:
   - po_number: an order reference with an uppercase prefix (e.g. MLA-2026-88X,
     PO-2026-99Z)
   - date:      the fulfillment/activation date, normalized to ISO (YYYY-MM-DD),

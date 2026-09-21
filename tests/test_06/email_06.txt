@@ -1,0 +1,15 @@
+From: billing@nordhaven-analytics.se
+Date: 12 March 2026, 09:40 AM
+To: procurement@yourscaleup.com
+Subject: Annual workspace renewal confirmed
+
+Hello,
+
+Thanks for signing the renewal. This confirms purchase order nh-2026-41k.
+
+The workspace is due to go live on the 15th of April 2026.
+
+Licence fee (net of VAT) is EUR 3,940.00. Billing is annual in advance.
+
+Kind regards,
+Nordhaven Analytics Billing
